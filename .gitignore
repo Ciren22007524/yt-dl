@@ -1,0 +1,25 @@
+# IntelliJ 專案設定
+.idea/
+*.iml
+
+# 虛擬環境
+.venv/
+__pycache__/
+*.py[cod]
+
+# 打包產物
+dist/
+build/
+*.spec
+
+# 影片下載目錄 (存放測試下載的檔案)
+downloads/
+
+# 執行檔與 FFmpeg 引擎S
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+*.exe
+
+# Poetry 測試快取
+.pytest_cache/

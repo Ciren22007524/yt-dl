@@ -1,0 +1,26 @@
+[project]
+name = "yt-downloader"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "larryjhong",email = "larryjhong@fontrip.com" }
+]
+#readme = "README.md"
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "fastapi (>=0.135.1,<0.136.0)",
+    "uvicorn (>=0.42.0,<0.43.0)",
+    "jinja2 (>=3.1.6,<4.0.0)",
+    "aiofiles (>=25.1.0,<26.0.0)",
+    "yt-dlp (>=2026.3.13,<2027.0.0)",
+    "python-multipart (>=0.0.22,<0.0.23)",
+    "imageio-ffmpeg (>=0.6.0,<0.7.0)",
+    "websockets (>=16.0,<17.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
