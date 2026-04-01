@@ -2,10 +2,15 @@
 .idea/
 *.iml
 
+config.json
+models/
+music_vector_db/
+
 # 虛擬環境
 .venv/
 __pycache__/
 *.py[cod]
+.env
 
 # 打包產物
 dist/
@@ -23,3 +28,6 @@ ffprobe.exe
 
 # Poetry 測試快取
 .pytest_cache/
+
+*.sqlite3
+*.sqlite3-journal

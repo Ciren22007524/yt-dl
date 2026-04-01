@@ -16,3 +16,83 @@
     font-size: 0.9rem;
     letter-spacing: 0.5px;
 }
+
+/* 相似檔案預覽區域的整體容器 */
+.similar-files-container {
+    background-color: #f8f9fa; /* bg-light */
+    border: 1px solid #dee2e6; /* border */
+    border-radius: 0.25rem; /* rounded */
+    padding-left: 0.5rem; /* px-2 */
+    padding-right: 0.5rem; /* px-2 */
+    margin-top: 0.5rem; /* mt-2 */
+    margin-bottom: 0.5rem; /* mb-2 */
+    text-align: left;
+}
+
+/* 限制清單高度並啟用垂直捲軸 */
+.similar-files-list {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+/* 相似檔案標題（⚠️ 發現庫中有相似檔案...） */
+.similar-files-title {
+    color: #dc3545; /* text-danger */
+    font-weight: bold; /* fw-bold */
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 清單中的每一行項目 */
+.similar-file-item {
+    display: flex; /* d-flex */
+    justify-content: space-between; /* justify-content-between */
+    align-items: center; /* align-items-center */
+    border-bottom: 1px solid #dee2e6; /* border-bottom */
+    padding-top: 0.25rem; /* py-1 */
+    padding-bottom: 0.25rem; /* py-1 */
+}
+
+/* 檔名文字部分 */
+.similar-file-name {
+    flex: 1;
+    text-align: left;
+    font-size: 0.75rem;
+    /* 處理長檔名自動截斷並顯示 ... */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 相似度百分比標籤的基础樣式 */
+.similar-file-badge {
+    margin-left: 0.5rem; /* ms-2 */
+    font-size: 0.7rem;
+    /* 覆蓋 Bootstrap 預設 badge 的一些樣式 */
+    padding: 0.35em 0.65em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+/* 高相似度 (>80%) 標籤顏色 */
+.bg-danger-override {
+    background-color: #dc3545 !important;
+}
+
+/* 中低相似度 (<80%) 標籤顏色 */
+.bg-warning-override {
+    background-color: #ffc107 !important;
+    color: #212529; /* 黃色背景通常配深色文字 */
+}
+
+/* 提示使用者忽略的文字 (若確定要下載...) */
+.ignore-prompt-text {
+    font-size: 0.875rem; /* small */
+    color: #6c757d; /* text-muted */
+    margin-top: 0.5rem; /* mt-2 */
+}

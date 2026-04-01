@@ -8,7 +8,36 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/index.css') }}">
 </head>
 <body class="bg-light">
+<button class="btn btn-outline-secondary position-fixed top-0 start-0 m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+    📂 檔案管理
+</button>
 
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">音樂庫管理</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold">📂 本地音樂庫路徑</label>
+            <div class="input-group input-group-sm">
+                <input type="text" id="library-path-input" class="form-control" placeholder="例如: D:/Music" value="{{ current_path }}">
+                <button class="btn btn-outline-primary" id="save-path-btn">儲存</button>
+            </div>
+            <div id="path-status" class="form-text text-success d-none">✅ 路徑已更新</div>
+        </div>
+        <div class="d-grid gap-2">
+            <button id="sync-btn" class="btn btn-primary">
+                🔄 同步本地資料夾 (建立索引)
+            </button>
+            <hr>
+            <h6>資料庫狀態</h6>
+            <p id="db-status" class="text-muted small">尚未掃描資料夾</p>
+            <ul id="file-list" class="list-group list-group-flush small" style="max-height: 400px; overflow-y: auto;">
+            </ul>
+        </div>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
