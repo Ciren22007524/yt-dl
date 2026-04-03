@@ -31,3 +31,7 @@ ffprobe.exe
 
 *.sqlite3
 *.sqlite3-journal
+
+# Log 檔案
+debug.log
+*.log

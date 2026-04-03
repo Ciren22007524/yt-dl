@@ -5,6 +5,7 @@ import asyncio
 import imageio_ffmpeg
 import json
 import re
+import logging
 from fastapi import FastAPI, Request, Form, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -41,6 +42,17 @@ embedding_model = SentenceTransformer(
     cache_folder="./models"
 )
 
+# --- Logging 設定 ---
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("debug.log", encoding="utf-8")
+    ]
+)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 
 if getattr(sys, 'frozen', False):
@@ -51,6 +63,10 @@ else:
     BASE_DIR = Path(__file__).parent
 
 ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+
+logger.info(f"BASE_DIR: {BASE_DIR}")
+logger.info(f"DOWNLOAD_DIR: {os.path.abspath(current_config['download_dir'])}")
+logger.info(f"FFmpeg: {ffmpeg_exe}")
 
 ## 回下載進度用
 # 存放啟動中的 WebSocket 連線
@@ -118,7 +134,10 @@ def run_download(url, ydl_opts):
             message = json.dumps({"type": "status", "data": "✅ 下載已完成！"})
             asyncio.run_coroutine_threadsafe(manager.broadcast(message), manager.loop)
     except Exception as e:
-        print(f"Download Error: {e}")
+        logger.error(f"Download Error: {e}", exc_info=True)
+        if manager.loop:
+            message = json.dumps({"type": "status", "data": f"❌ 下載失敗：{e}"})
+            asyncio.run_coroutine_threadsafe(manager.broadcast(message), manager.loop)
 
 # yt-dlp 的進度鉤子
 last_percent = ""
@@ -144,10 +163,12 @@ async def root(request: Request):
 
 @app.get("/preview")
 async def get_preview(url: str):
+    logger.info(f"Preview requested: {url}")
     try:
         with yt_dlp.YoutubeDL({'quiet': True, 'noplaylist': True}) as ydl:
             info = ydl.extract_info(url, download=False)
             title = info.get('title')
+            logger.info(f"Preview success: {title}")
 
             # --- 💡 補上向量比對邏輯 ---
             similar_files = []
@@ -170,6 +191,7 @@ async def get_preview(url: str):
                 "similar_files": similar_files # 傳給前端顯示
             }
     except Exception as e:
+        logger.warning(f"Preview failed: {e}")
         return {"error": str(e)}
 
 @app.post("/download")
@@ -212,6 +234,7 @@ async def download_video(
         ],
         'progress_hooks': [progress_hook]
     })
+    logger.info(f"Download started: format={format_type}, quality={quality}, url={url}")
     background_tasks.add_task(run_download, url, ydl_opts)
 
     return {"status": "started"}

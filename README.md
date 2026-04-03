@@ -71,11 +71,22 @@
 
 ---
 
-## 安裝與執行
+## 安裝與執行（Windows）
+
+### 0. 前置條件
+
+確認已安裝 Python 3.13+ 和 Poetry：
+
+```powershell
+python --version    # 需要 >= 3.13
+poetry --version    # 如果沒有，請先安裝 Poetry
+```
+
+> **安裝 Poetry：** 在 PowerShell 執行 `(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -`
 
 ### 1. 選擇分支
 
-```bash
+```powershell
 # 基礎版（預設）
 git checkout main
 
@@ -85,19 +96,35 @@ git checkout feature-ai_recommend
 
 ### 2. 安裝依賴套件
 
-```bash
+```powershell
 poetry install
 ```
 
 ### 3. 啟動伺服器
 
-```bash
+```powershell
 poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 4. 開啟瀏覽器
+啟動後終端會顯示：
+```
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+```
 
-前往 [http://127.0.0.1:8000](http://127.0.0.1:8000) 即可使用。
+### 4. 開啟瀏覽器使用
+
+前往 [http://127.0.0.1:8000](http://127.0.0.1:8000)，在網頁上貼上影片網址即可下載。
+
+> **不需要在終端輸入影片連結！** 所有操作都在瀏覽器的網頁介面上完成。
+
+### 5. 查看 Debug Log
+
+下載過程中的所有 log 會同時輸出到終端和 `debug.log` 檔案：
+
+```powershell
+# 即時監看 log（另開一個 PowerShell 視窗）
+Get-Content debug.log -Wait
+```
 
 ---
 
@@ -130,7 +157,7 @@ poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 ### 使用 Poetry Shell
 
-```bash
+```powershell
 poetry shell
 uvicorn main:app --reload
 ```
@@ -139,9 +166,19 @@ uvicorn main:app --reload
 
 將 `--host` 改為 `0.0.0.0`：
 
-```bash
+```powershell
 poetry run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
+
+### Debug Log 說明
+
+啟動伺服器後，`debug.log` 會自動記錄：
+- 啟動時的環境資訊（BASE_DIR、FFmpeg 路徑）
+- 每次預覽請求（URL 和影片標題）
+- 每次下載請求（格式、品質、URL）
+- 下載錯誤（含完整堆疊追蹤）
+
+Log 會同時輸出到終端和檔案，不需額外設定。
 
 ---
 
