@@ -1,16 +1,16 @@
-# 🎬 YT 下載器 (yt-dl)
+# 🎬 MediaDL
 
-一個基於 Web 的 YouTube 影片／音訊下載工具，提供簡潔的瀏覽器介面，讓你貼上 YouTube 網址就能快速下載 MP4 影片或 MP3 音訊檔案。本專案透過不同分支提供 **基礎下載** 與 **AI 智慧重複偵測** 兩種版本。
+一個基於 Web 的影音下載工具，提供簡潔的瀏覽器介面，讓你貼上影片網址就能快速下載 MP4 影片或 MP3 音訊檔案。後端採用 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 引擎，支援上千個影音平台。本專案透過不同分支提供 **基礎下載** 與 **AI 智慧重複偵測** 兩種版本。
 
 ---
 
 ## 這個工具在幹嘛？
 
-這是一個 **本地自架的 YouTube 下載器**，後端使用 Python 的 [FastAPI](https://fastapi.tiangolo.com/) 框架搭配 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 引擎，前端提供 Bootstrap 美化的網頁介面。你只要在瀏覽器中打開頁面、貼上 YouTube 連結，就能直接下載影片或純音訊到本機。
+這是一個 **本地自架的影音下載工具**，後端使用 Python 的 [FastAPI](https://fastapi.tiangolo.com/) 框架搭配 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 引擎，前端提供 Bootstrap 美化的網頁介面。你只要在瀏覽器中打開頁面、貼上影片連結，就能直接下載影片或純音訊到本機。yt-dlp 支援上千個影音平台，不限於單一來源。
 
 **核心運作流程：**
 
-1. 使用者在網頁貼上 YouTube 網址 → 自動抓取影片縮圖並預覽
+1. 使用者在網頁貼上影片網址 → 自動抓取影片縮圖並預覽
 2. 選擇輸出格式（MP4 / MP3）和品質
 3. 點擊「開始下載」→ 後端以背景任務執行 yt-dlp 下載
 4. 透過 WebSocket 即時回傳下載進度條到前端
@@ -25,7 +25,7 @@
 
 | 分支 | 說明 |
 |------|------|
-| **`main`** / **`feature-basic_function`** | 基礎版本 — 完整的 YouTube 下載功能（兩者程式碼完全相同） |
+| **`main`** / **`feature-basic_function`** | 基礎版本 — 完整的影音下載功能（兩者程式碼完全相同） |
 | **`feature-ai_recommend`** | AI 進階版 — 在基礎版之上加入向量資料庫與 AI 相似度比對，下載前自動偵測庫中是否已有相似檔案 |
 
 ---
@@ -105,7 +105,7 @@ poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 ### 基礎版操作
 
-1. **貼上網址** — 將 YouTube 影片網址貼到輸入框，頁面會自動顯示影片封面縮圖
+1. **貼上網址** — 將影片網址貼到輸入框，頁面會自動顯示影片封面縮圖
 2. **選擇格式** — 從下拉選單選擇 `MP4 (影片)` 或 `MP3 (音訊)`
 3. **選擇品質**
    - MP4：最佳品質 / 1080p / 720p / 480p
@@ -117,7 +117,7 @@ poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 1. **設定音樂庫路徑** — 點擊左上角「📂 檔案管理」開啟側邊欄 → 輸入本地音樂庫路徑（如 `D:/Music`）→ 點擊「儲存」
 2. **建立索引** — 在側邊欄點擊「🔄 同步本地資料夾」，掃描資料夾內所有 `.mp3` / `.mp4` 檔案並建立向量索引
-3. **智慧偵測** — 貼上 YouTube 網址後，除了顯示縮圖，還會自動比對庫中是否有相似檔案：
+3. **智慧偵測** — 貼上影片網址後，除了顯示縮圖，還會自動比對庫中是否有相似檔案：
    - 若偵測到相似檔案，會列出檔名與相似度百分比
    - 紅色標籤 = 高度相似（> 80%），很可能是重複的
    - 黃色標籤 = 中度相似（60%–80%），可能相關但不一定重複
@@ -150,7 +150,7 @@ poetry run uvicorn main:app --host 0.0.0.0 --port 8000
 ### 基礎版（`main`）
 
 ```
-yt-dl/
+MediaDL/
 ├── main.py               # FastAPI 後端主程式（API 路由、下載邏輯、WebSocket）
 ├── pyproject.toml         # Poetry 專案設定與依賴
 ├── poetry.lock            # 鎖定的依賴版本
@@ -170,7 +170,7 @@ yt-dl/
 ### AI 進階版額外檔案（`feature-ai_recommend`）
 
 ```
-yt-dl/
+MediaDL/
 ├── config.json            # 使用者設定（下載路徑等，自動產生，已 gitignore）
 ├── models/                # SentenceTransformer 模型快取（首次啟動自動下載）
 ├── music_vector_db/       # ChromaDB 向量資料庫持久化目錄
