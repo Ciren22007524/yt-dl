@@ -20,10 +20,8 @@
     <div class="offcanvas-body">
         <div class="mb-3">
             <label class="form-label fw-bold">📂 本地音樂庫路徑</label>
-            <div class="input-group input-group-sm">
-                <input type="text" id="library-path-input" class="form-control" placeholder="例如: D:/Music" value="{{ current_path }}">
-                <button class="btn btn-outline-primary" id="save-path-btn">儲存</button>
-            </div>
+            <p id="library-path-display" class="form-control form-control-sm bg-light mb-2" style="word-break: break-all; min-height: 2em;">{{ current_path }}</p>
+            <button class="btn btn-outline-primary btn-sm w-100" id="browse-path-btn">📁 選擇資料夾</button>
             <div id="path-status" class="form-text text-success d-none">✅ 路徑已更新</div>
         </div>
         <div class="d-grid gap-2">

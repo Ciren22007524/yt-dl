@@ -193,34 +193,31 @@ syncBtn.addEventListener('click', async () => {
 // 頁面載入後先跑一次狀態更新
 refreshLibraryStatus();
 
-const pathInput = document.getElementById('library-path-input');
-const savePathBtn = document.getElementById('save-path-btn');
+const pathDisplay = document.getElementById('library-path-display');
+const browseBtn = document.getElementById('browse-path-btn');
 const pathStatus = document.getElementById('path-status');
 
-// 儲存路徑的功能
-savePathBtn.addEventListener('click', async () => {
-    const newPath = pathInput.value;
-    if (!newPath) return;
-
-    savePathBtn.disabled = true;
-    const formData = new FormData();
-    formData.append('path', newPath);
+// 選擇資料夾
+browseBtn.addEventListener('click', async () => {
+    browseBtn.disabled = true;
+    browseBtn.innerText = '📁 選擇中...';
 
     try {
-        const response = await fetch('/config/path', { method: 'POST', body: formData });
+        const response = await fetch('/config/browse');
         const result = await response.json();
 
         if (result.status === 'success') {
+            pathDisplay.textContent = result.path;
             pathStatus.classList.remove('d-none');
             setTimeout(() => pathStatus.classList.add('d-none'), 2000);
-            // 路徑改了之後，建議重新抓取狀態
             await refreshLibraryStatus();
-        } else {
+        } else if (result.status !== 'cancelled') {
             alert('路徑設定失敗：' + result.message);
         }
     } catch (e) {
         alert('連線失敗');
     } finally {
-        savePathBtn.disabled = false;
+        browseBtn.disabled = false;
+        browseBtn.innerText = '📁 選擇資料夾';
     }
 });

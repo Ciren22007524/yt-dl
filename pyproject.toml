@@ -15,7 +15,9 @@ dependencies = [
     "yt-dlp (>=2026.3.13,<2027.0.0)",
     "python-multipart (>=0.0.22,<0.0.23)",
     "imageio-ffmpeg (>=0.6.0,<0.7.0)",
-    "websockets (>=16.0,<17.0)"
+    "websockets (>=16.0,<17.0)",
+    "chromadb (>=1.5.5,<2.0.0)",
+    "sentence-transformers (>=5.3.0,<6.0.0)"
 ]
 
 [tool.poetry]

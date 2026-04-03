@@ -225,6 +225,13 @@ async def download_video(
         ydl_opts = {
             'format': video_format,
             'merge_output_format': 'mp4',
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4',
+            }],
+            'postprocessor_args': {
+                'VideoConvertor': ['-c:v', 'copy', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11'],
+            },
         }
     else:
         # MP3 邏輯：接收前端傳來的 kbps
@@ -235,6 +242,9 @@ async def download_video(
                 'preferredcodec': 'mp3',
                 'preferredquality': quality,
             }],
+            'postprocessor_args': {
+                'ExtractAudio': ['-af', 'loudnorm=I=-16:TP=-1.5:LRA=11'],
+            },
         }
 
     ydl_opts.update({
@@ -248,9 +258,6 @@ async def download_video(
         'fixup': 'detect_or_warn',
         # 'verbose': True,
         # 'noprogress': False,
-        'postprocessor_args': [
-            '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11'
-        ],
         'progress_hooks': [progress_hook]
     })
     logger.info(f"Download started: format={format_type}, quality={quality}, url={url}")
@@ -270,6 +277,53 @@ async def update_path(path: str = Form(...)):
         return {"status": "success", "path": normalized_path}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@app.get("/config/browse")
+async def browse_folder():
+    """開啟 Windows 原生資料夾選擇對話框，選取後自動儲存路徑"""
+    import subprocess
+    import asyncio
+
+    def pick_folder():
+        script = (
+            'Add-Type -AssemblyName System.Windows.Forms; '
+            '$form = New-Object System.Windows.Forms.Form; '
+            '$form.TopMost = $true; '
+            '$form.ShowInTaskbar = $false; '
+            '$form.WindowState = [System.Windows.Forms.FormWindowState]::Minimized; '
+            '$dialog = New-Object System.Windows.Forms.FolderBrowserDialog; '
+            '$dialog.Description = "選擇音樂庫資料夾"; '
+            '$dialog.ShowNewFolderButton = $true; '
+            '$result = $dialog.ShowDialog($form); '
+            '$form.Dispose(); '
+            'if ($result -eq [System.Windows.Forms.DialogResult]::OK) { '
+            '  Write-Output $dialog.SelectedPath '
+            '} else { '
+            '  Write-Output "" '
+            '}'
+        )
+        proc = subprocess.run(
+            ['powershell', '-NoProfile', '-STA', '-Command', script],
+            capture_output=True, text=True, timeout=120
+        )
+        return proc.stdout.strip()
+
+    try:
+        folder = await asyncio.to_thread(pick_folder)
+    except Exception as e:
+        logger.error(f"Folder picker error: {e}")
+        return {"status": "error", "message": str(e)}
+
+    if not folder:
+        return {"status": "cancelled"}
+
+    normalized = folder.replace("\\", "/")
+    if not os.path.exists(normalized):
+        os.makedirs(normalized)
+    current_config["download_dir"] = normalized
+    save_config(current_config)
+    logger.info(f"Download path updated via folder picker: {normalized}")
+    return {"status": "success", "path": normalized}
 
 @app.get("/db/status")
 async def get_db_status():
