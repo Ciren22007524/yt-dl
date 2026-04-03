@@ -106,10 +106,29 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # 下載任務的核心邏輯 (同步執行)
-def run_download(url, ydl_opts):
+def run_download(url, ydl_opts, requested_quality=None, format_type=None):
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url, download=True)
+
+        # 檢查畫質是否有降規格（僅 MP4）
+        if manager.loop and format_type == 'mp4' and requested_quality and requested_quality not in ('best',):
+            actual_height = info.get('height') or 0
+            # 合併格式時，從 requested_formats 取得影片軌的實際高度
+            if not actual_height and info.get('requested_formats'):
+                for fmt in info['requested_formats']:
+                    if fmt.get('vcodec') and fmt['vcodec'] != 'none':
+                        actual_height = fmt.get('height', 0)
+                        break
+
+            requested_height = int(requested_quality)
+            if actual_height and actual_height < requested_height:
+                downgrade_msg = json.dumps({
+                    "type": "status",
+                    "data": f"⚠️ 此影片最高僅支援 {actual_height}p，已自動以最佳可用畫質下載"
+                })
+                logger.info(f"Quality downgrade: requested {requested_height}p → actual {actual_height}p")
+                asyncio.run_coroutine_threadsafe(manager.broadcast(downgrade_msg), manager.loop)
 
         # --- 💡 新增：下載完後自動更新向量庫 ---
         # 這裡直接呼叫我們寫好的 sync 邏輯 (簡化版)
@@ -235,7 +254,7 @@ async def download_video(
         'progress_hooks': [progress_hook]
     })
     logger.info(f"Download started: format={format_type}, quality={quality}, url={url}")
-    background_tasks.add_task(run_download, url, ydl_opts)
+    background_tasks.add_task(run_download, url, ydl_opts, requested_quality=quality, format_type=format_type)
 
     return {"status": "started"}
 

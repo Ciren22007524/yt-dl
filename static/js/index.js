@@ -27,6 +27,8 @@ formatSelect.addEventListener('change', () => {
     } else {
         const options = [
             { text: '最佳品質', value: 'best' },
+            { text: '2160p (4K)', value: '2160' },
+            { text: '1440p (2K)', value: '1440' },
             { text: '1080p', value: '1080' },
             { text: '720p', value: '720' },
             { text: '480p', value: '480' }
