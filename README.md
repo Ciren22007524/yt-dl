@@ -1,33 +1,216 @@
-## 如何執行專案
+# 🎬 YT 下載器 (yt-dl)
 
-### 1. **安裝依賴套件**
-   ```bash
-   poetry install
-   ```
+一個基於 Web 的 YouTube 影片／音訊下載工具，提供簡潔的瀏覽器介面，讓你貼上 YouTube 網址就能快速下載 MP4 影片或 MP3 音訊檔案。本專案透過不同分支提供 **基礎下載** 與 **AI 智慧重複偵測** 兩種版本。
 
 ---
 
-### 2. **執行方式**
-   ```bash
-   poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
-   ```
+## 這個工具在幹嘛？
+
+這是一個 **本地自架的 YouTube 下載器**，後端使用 Python 的 [FastAPI](https://fastapi.tiangolo.com/) 框架搭配 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 引擎，前端提供 Bootstrap 美化的網頁介面。你只要在瀏覽器中打開頁面、貼上 YouTube 連結，就能直接下載影片或純音訊到本機。
+
+**核心運作流程：**
+
+1. 使用者在網頁貼上 YouTube 網址 → 自動抓取影片縮圖並預覽
+2. 選擇輸出格式（MP4 / MP3）和品質
+3. 點擊「開始下載」→ 後端以背景任務執行 yt-dlp 下載
+4. 透過 WebSocket 即時回傳下載進度條到前端
+5. 下載完成後自動進行 FFmpeg 轉檔與 **loudnorm 音量標準化**
+6. 前端彈窗通知完成
 
 ---
 
-### 3. 進階小技巧：使用 `poetry shell`
-如果你不想每次都打 `poetry run`，你可以先進入虛擬環境：
+## 分支說明
 
-1. 輸入 `poetry shell`（進入環境）。
-2. 直接輸入 `uvicorn main:app --reload`（不用加 host/port，除非你要改預設值）。
+本專案有三個分支，提供不同層級的功能：
 
----
-
-### 4. 注意事項（檢查清單）
-* **檔名對應：** 你的指令寫 `main:app`，請確保你的主程式檔名真的是 `main.py`，且裡面定義的 FastAPI 實例變數名稱是 `app`。
-* **.gitignore：** 因為你用了 Poetry，記得要把 `.venv/` 資料夾加到 `.gitignore` 中，不要推到 GitHub，別人只要有 `pyproject.toml` 就能透過 `poetry install` 還原環境。
-* **Host 設定：** `--host 127.0.0.1` 代表只允許你自己電腦連線。如果你之後要把 `yt-downloader` 丟到 Docker 或是雲端主機（如 Render/GCP），記得要改成 `--host 0.0.0.0` 才能對外連線。
+| 分支 | 說明 |
+|------|------|
+| **`main`** / **`feature-basic_function`** | 基礎版本 — 完整的 YouTube 下載功能（兩者程式碼完全相同） |
+| **`feature-ai_recommend`** | AI 進階版 — 在基礎版之上加入向量資料庫與 AI 相似度比對，下載前自動偵測庫中是否已有相似檔案 |
 
 ---
 
-### 5. 自動化小撇步 (選用)
-如果你覺得啟動指令太長，可以在 `pyproject.toml` 加入一個腳本設定，但最簡單的方式還是在 README 寫清楚就好。
+## 功能特色
+
+### 基礎功能（`main` / `feature-basic_function`）
+
+| 功能 | 說明 |
+|------|------|
+| **MP4 影片下載** | 支援最佳畫質、1080p、720p、480p 等解析度選擇 |
+| **MP3 音訊下載** | 支援最佳音質、320kbps、256kbps、192kbps、128kbps |
+| **影片預覽** | 貼上網址後自動載入影片縮圖顯示在頁面上 |
+| **即時進度條** | 透過 WebSocket 即時顯示下載百分比，不用重新整理頁面 |
+| **音量標準化** | 下載後自動套用 FFmpeg `loudnorm` 濾鏡，統一音量大小 |
+| **背景下載** | 使用 FastAPI BackgroundTasks，下載不會阻塞 Web 伺服器 |
+| **內建 FFmpeg** | 透過 `imageio-ffmpeg` 自動取得 FFmpeg，不需另外安裝 |
+| **可打包為 exe** | 支援 PyInstaller 打包成獨立執行檔（已有 frozen 環境判斷） |
+
+### AI 進階功能（`feature-ai_recommend`）
+
+在基礎功能之上，額外提供：
+
+| 功能 | 說明 |
+|------|------|
+| **AI 重複偵測** | 貼上網址時，自動用 AI 語意比對庫中已有檔案，若相似度 > 60% 則顯示警告，避免重複下載 |
+| **向量資料庫** | 使用 [ChromaDB](https://www.trychroma.com/) 持久化儲存檔案名稱的向量嵌入 |
+| **多語言語意模型** | 使用 [SentenceTransformer](https://www.sbert.net/) 的 `paraphrase-multilingual-MiniLM-L12-v2` 模型，支援中英日等多語言的語意比對 |
+| **相似度分級顯示** | 相似度 > 80% 標紅色高風險、60%–80% 標黃色中風險，一目瞭然 |
+| **自動索引更新** | 每次下載完成後，自動將新檔案加入向量資料庫 |
+| **手動同步索引** | 側邊欄提供「同步本地資料夾」按鈕，可手動重建索引 |
+| **自訂下載路徑** | 可透過側邊欄設定本地音樂庫路徑，設定存入 `config.json` 持久保存 |
+| **音樂庫管理面板** | 左側 Offcanvas 側邊欄，顯示庫中檔案數量與完整清單 |
+
+---
+
+## 系統需求
+
+- **Python** >= 3.13
+- **Poetry**（套件管理工具）
+
+> **注意：** `feature-ai_recommend` 分支額外需要下載 SentenceTransformer 模型（首次啟動會自動下載至 `./models/` 目錄）。
+
+---
+
+## 安裝與執行
+
+### 1. 選擇分支
+
+```bash
+# 基礎版（預設）
+git checkout main
+
+# AI 進階版
+git checkout feature-ai_recommend
+```
+
+### 2. 安裝依賴套件
+
+```bash
+poetry install
+```
+
+### 3. 啟動伺服器
+
+```bash
+poetry run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### 4. 開啟瀏覽器
+
+前往 [http://127.0.0.1:8000](http://127.0.0.1:8000) 即可使用。
+
+---
+
+## 使用方式
+
+### 基礎版操作
+
+1. **貼上網址** — 將 YouTube 影片網址貼到輸入框，頁面會自動顯示影片封面縮圖
+2. **選擇格式** — 從下拉選單選擇 `MP4 (影片)` 或 `MP3 (音訊)`
+3. **選擇品質**
+   - MP4：最佳品質 / 1080p / 720p / 480p
+   - MP3：最佳音質 / 320kbps / 256kbps / 192kbps / 128kbps
+4. **點擊「🚀 開始下載」** — 進度條會即時顯示下載進度
+5. **等待完成** — 下載完成後會彈窗通知，檔案存放在 `downloads/` 資料夾
+
+### AI 進階版額外操作
+
+1. **設定音樂庫路徑** — 點擊左上角「📂 檔案管理」開啟側邊欄 → 輸入本地音樂庫路徑（如 `D:/Music`）→ 點擊「儲存」
+2. **建立索引** — 在側邊欄點擊「🔄 同步本地資料夾」，掃描資料夾內所有 `.mp3` / `.mp4` 檔案並建立向量索引
+3. **智慧偵測** — 貼上 YouTube 網址後，除了顯示縮圖，還會自動比對庫中是否有相似檔案：
+   - 若偵測到相似檔案，會列出檔名與相似度百分比
+   - 紅色標籤 = 高度相似（> 80%），很可能是重複的
+   - 黃色標籤 = 中度相似（60%–80%），可能相關但不一定重複
+   - 若確定要下載，忽略提示直接點擊下載按鈕即可
+4. **自動更新** — 每次下載完成後，向量資料庫會自動更新，不需手動重新同步
+
+---
+
+## 進階用法
+
+### 使用 Poetry Shell
+
+```bash
+poetry shell
+uvicorn main:app --reload
+```
+
+### 對外開放連線（部署用）
+
+將 `--host` 改為 `0.0.0.0`：
+
+```bash
+poetry run uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+## 專案結構
+
+### 基礎版（`main`）
+
+```
+yt-dl/
+├── main.py               # FastAPI 後端主程式（API 路由、下載邏輯、WebSocket）
+├── pyproject.toml         # Poetry 專案設定與依賴
+├── poetry.lock            # 鎖定的依賴版本
+├── templates/
+│   └── index.html         # Jinja2 前端頁面模板
+├── static/
+│   ├── css/
+│   │   ├── bootstrap.min.css
+│   │   └── index.css      # 自定義樣式
+│   └── js/
+│       ├── bootstrap.bundle.min.js
+│       ├── index.js        # 前端互動邏輯（格式切換、預覽、表單送出）
+│       └── websocket.js    # WebSocket 連線處理（進度條即時更新）
+└── downloads/             # 下載檔案存放目錄（自動建立，已 gitignore）
+```
+
+### AI 進階版額外檔案（`feature-ai_recommend`）
+
+```
+yt-dl/
+├── config.json            # 使用者設定（下載路徑等，自動產生，已 gitignore）
+├── models/                # SentenceTransformer 模型快取（首次啟動自動下載）
+├── music_vector_db/       # ChromaDB 向量資料庫持久化目錄
+└── ...                    # 其餘同基礎版
+```
+
+---
+
+## API 端點
+
+### 基礎版
+
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| `GET` | `/` | 首頁（Web 介面） |
+| `GET` | `/preview?url=...` | 取得影片標題與縮圖 |
+| `POST` | `/download` | 開始下載（表單：`url`, `format_type`, `quality`） |
+| `WS` | `/ws` | WebSocket 連線，接收即時下載進度 |
+
+### AI 進階版額外端點
+
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| `GET` | `/preview?url=...` | 同上，但額外回傳 `similar_files` 相似檔案清單 |
+| `POST` | `/config/path` | 更新下載路徑（表單：`path`） |
+| `GET` | `/db/status` | 取得向量資料庫狀態（檔案數量、清單、目前路徑） |
+| `POST` | `/db/sync` | 手動觸發資料夾掃描與向量索引重建 |
+
+---
+
+## 技術棧
+
+| 層級 | 基礎版 | AI 進階版額外使用 |
+|------|--------|-------------------|
+| **後端框架** | FastAPI | — |
+| **下載引擎** | yt-dlp | — |
+| **音訊處理** | imageio-ffmpeg (loudnorm) | — |
+| **前端** | Bootstrap 5 + 原生 JavaScript | — |
+| **即時通訊** | WebSocket | — |
+| **模板引擎** | Jinja2 | — |
+| **套件管理** | Poetry | — |
+| **向量資料庫** | — | ChromaDB |
+| **AI 語意模型** | — | SentenceTransformer (paraphrase-multilingual-MiniLM-L12-v2) |
